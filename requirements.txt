@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+openpyxl
+requests
+sqlalchemy
+psycopg2-binary
+itsdangerous
+supabase>=2.0.0

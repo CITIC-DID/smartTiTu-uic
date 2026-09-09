@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智信 SmartTiTu - 客户开通申请登记表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* 1. 基础防断页类 */
+        .avoid-page-break {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* 2. PDF 生成模式下的强制完全展开样式 */
+        .pdf-export-mode {
+            width: 800px !important;
+            max-width: 800px !important;
+            overflow: visible !important;
+            height: auto !important;
+            position: relative !important;
+            background: #ffffff !important;
+        }
+
+        /* 强制解除所有子元素的溢出隐藏和最大高度限制 */
+        .pdf-export-mode * {
+            overflow: visible !important;
+            max-height: none !important;
+        }
+
+        /* 强制多行输入框展示全部文字，避免出现滚动条 */
+        .pdf-export-mode textarea {
+            height: auto !important;
+            resize: none !important;
+            white-space: pre-wrap !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-6 px-4 font-sans">
+    <!-- 顶部居中图片 Header -->
+    <div class="max-w-4xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-center bg-white px-6 py-4 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex justify-center items-center w-full sm:w-auto mb-3 sm:mb-0">
+            <img src="/static/titu.jpg" alt="Logo" class="h-12 w-auto object-contain">
+        </div>
+        <a href="/logout" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg border transition">
+            🚪 退出登录
+        </a>
+    </div>
+
+    <!-- PDF 导出包裹层 -->
+    <div id="pdf-container" class="max-w-4xl mx-auto bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <div class="bg-blue-600 px-8 py-6 text-white avoid-page-break">
+            <h1 class="text-2xl font-bold">客户开通申请登记表</h1>
+            <p class="text-blue-100 text-sm mt-1">请填写以下客户开通申请信息，提交后将自动同步至数据集。</p>
+        </div>
+
+        <form id="applyForm" action="/submit" method="POST" class="p-8 space-y-6">
+            <!-- 基础申请信息 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 avoid-page-break">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">申请 ID</label>
+                    <input type="text" id="apply_id" name="apply_id" value="{{ apply_id }}" readonly class="w-full border border-slate-200 bg-slate-100 font-mono text-slate-600 font-semibold rounded-lg px-3 py-2 text-sm outline-none cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">申请日期 <span class="text-red-500">*</span></label>
+                    <input type="date" name="apply_date" value="{{ today_str }}" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">团队 <span class="text-red-500">*</span></label>
+                    <select name="team" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">请选择团队</option>
+                        {% for t in options.teams %}
+                        <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">销售同事姓名 <span class="text-red-500">*</span></label>
+                    <input type="text" name="sales_name" placeholder="填写姓名" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <!-- 客户详细信息 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 avoid-page-break">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">客户名 <span class="text-red-500">*</span></label>
+                    <input type="text" name="client_name" placeholder="请输入客户公司全称" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">客户行业 <span class="text-red-500">*</span></label>
+                    <select name="industry" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">请选择所属行业</option>
+                        {% for ind in options.industries %}
+                        <option value="{{ ind }}">{{ ind }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 avoid-page-break">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">客户联系方式 <span class="text-red-500">*</span></label>
+                    <input type="text" name="contact_info" placeholder="电话/邮箱/微信" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">内部对接人</label>
+                    <input type="text" name="internal_contact" placeholder="内部联系人（选填）" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <div class="avoid-page-break">
+                <label class="block text-sm font-medium text-slate-700 mb-1">企业简单背景描述</label>
+                <textarea name="company_desc" rows="2" placeholder="简要描述企业主营业务及规模" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+            </div>
+
+            <!-- 业务规则信息 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 avoid-page-break">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">申请类型 <span class="text-red-500">*</span></label>
+                    <select name="app_type" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        {% for at in options.app_types %}
+                        <option value="{{ at }}">{{ at }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">PoC / 正式上线 <span class="text-red-500">*</span></label>
+                    <select name="poc_stage" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        {% for ps in options.poc_stages %}
+                        <option value="{{ ps }}">{{ ps }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">合约状态 <span class="text-red-500">*</span></label>
+                    <select name="contract_status" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        {% for cs in options.contracts %}
+                        <option value="{{ cs }}">{{ cs }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="avoid-page-break">
+                <label class="block text-sm font-medium text-slate-700 mb-1">场景/产品需求描述</label>
+                <textarea name="requirement_desc" rows="3" placeholder="详细说明业务应用场景与模型需求" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+            </div>
+
+            <!-- 测试范围（多选模型） -->
+            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 avoid-page-break">
+                <div class="flex items-center justify-between mb-3">
+                    <label class="block text-sm font-semibold text-slate-800">测试范围（模型选项）</label>
+                    <label class="flex items-center space-x-2 cursor-pointer bg-white px-2.5 py-1 border rounded shadow-sm hover:bg-slate-50 transition">
+                        <input type="checkbox" id="selectAllModels" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-xs font-medium text-slate-700">全选 / 取消全选</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {% for model in options.models %}
+                    <label class="flex items-start space-x-2.5 p-2.5 bg-white border border-slate-200 rounded-lg hover:border-blue-400 hover:shadow-sm cursor-pointer transition avoid-page-break">
+                        <input type="checkbox" name="models" value="{{ model }}" class="model-checkbox mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0">
+                        <span class="text-xs font-mono text-slate-700 break-all leading-normal select-none" title="{{ model }}">
+                            {{ model }}
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 底部按钮区（导出时会自动被隐藏） -->
+            <div class="pt-4 border-t border-slate-100 flex justify-end space-x-4">
+                <button type="button" id="exportPdfBtn" class="bg-blue-600 hover:bg-slate-700 text-white font-medium px-5 py-2.5 rounded-lg text-sm shadow transition flex items-center">
+                    📄 导出成 PDF
+                </button>
+                <button type="submit" id="submitBtn" class="bg-green-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm shadow transition">
+                    提交开通申请
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 模型全选/取消全选逻辑
+            const selectAllCheckbox = document.getElementById('selectAllModels');
+            const modelCheckboxes = document.querySelectorAll('.model-checkbox');
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    modelCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+                });
+                modelCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        selectAllCheckbox.checked = Array.from(modelCheckboxes).every(c => c.checked);
+                    });
+                });
+            }
+
+            // PDF 生成配置
+            function getPdfOptions() {
+                const applyId = document.getElementById('apply_id').value || 'APP000000';
+                return {
+                    margin: [10, 8, 10, 8],
+                    filename: `客户开通${applyId}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        scrollY: 0,            // 重置垂直滚动条
+                        scrollX: 0,            // 重置水平滚动条
+                        windowWidth: 800,      // 固定视口宽度
+                        windowHeight: document.getElementById('pdf-container').scrollHeight, // 动态计算真实总高度
+                        allowTaint: true
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'], avoid: '.avoid-page-break' }
+                };
+            }
+
+            // PDF 核心渲染函数
+            async function generatePdfBlob(element) {
+                const actionBtns = element.querySelector('.pt-4');
+
+                // 1. 隐藏底部操作按钮
+                if (actionBtns) actionBtns.style.display = 'none';
+
+                // 2. 记录当前滚动位置并强行重置到最顶端
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                window.scrollTo(0, 0);
+
+                // 3. 施加渲染完全展开样式
+                element.classList.add('pdf-export-mode');
+
+                // 4. 给浏览器 100ms 进行 DOM 重新布局计算
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                try {
+                    const opt = getPdfOptions();
+                    const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+                    return pdfBlob;
+                } finally {
+                    // 5. 还原样式和页面位置
+                    element.classList.remove('pdf-export-mode');
+                    if (actionBtns) actionBtns.style.display = 'flex';
+                    window.scrollTo(0, scrollTop);
+                }
+            }
+
+            // 1. 纯导出 PDF 按钮事件
+            const exportPdfBtn = document.getElementById('exportPdfBtn');
+            exportPdfBtn.addEventListener('click', async function() {
+                const element = document.getElementById('pdf-container');
+                const applyId = document.getElementById('apply_id').value || 'APP000000';
+
+                try {
+                    const pdfBlob = await generatePdfBlob(element);
+                    const url = URL.createObjectURL(pdfBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `客户开通${applyId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (err) {
+                    console.error('导出 PDF 失败:', err);
+                    alert('导出 PDF 失败，请重试！');
+                }
+            });
+
+            // 2. 表单提交并生成 PDF 保存事件
+            const applyForm = document.getElementById('applyForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            applyForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                if (!applyForm.checkValidity()) {
+                    applyForm.reportValidity();
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.innerText = '正在提交并保存PDF...';
+
+                const element = document.getElementById('pdf-container');
+
+                try {
+                    const pdfBlob = await generatePdfBlob(element);
+                    const formData = new FormData(applyForm);
+                    const applyId = document.getElementById('apply_id').value;
+                    formData.append('pdf_file', pdfBlob, `客户开通${applyId}.pdf`);
+
+                    const response = await fetch('/submit', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        const clientName = formData.get('client_name') || '客户';
+                        window.location.href = `/success?client_name=${encodeURIComponent(clientName)}`;
+                    }
+                } catch (err) {
+                    console.error('提交生成 PDF 失败:', err);
+                    alert('提交失败，请重试！');
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = '提交开通申请';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

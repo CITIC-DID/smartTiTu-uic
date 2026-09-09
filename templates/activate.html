@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开通信息处理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-6 font-sans">
+    <div class="max-w-7xl mx-auto">
+        <!-- 顶部居中图片 Header -->
+        <div class="mb-6 flex flex-col sm:flex-row justify-between items-center bg-white px-6 py-4 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex justify-center items-center w-full sm:w-auto mb-3 sm:mb-0">
+                <img src="/static/titu.jpg" alt="Logo" class="h-12 w-auto object-contain">
+            </div>
+            <a href="/logout" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg border transition">
+                🚪 退出登录
+            </a>
+        </div>
+
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">⚙️ 开通信息处理</h1>
+        </div>
+
+        <form action="/activate/save" method="POST">
+            <input type="hidden" name="page" value="{{ current_page }}">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for item in items %}
+                <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+
+                    <!-- 卡片头部与申请摘要信息 -->
+                    <div class="bg-slate-50 p-4 border-b border-slate-200">
+                        <input type="hidden" name="row_ids" value="{{ item.row }}">
+
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h2 class="font-bold text-lg text-slate-800 truncate" title="{{ item.client_name }}">{{ item.client_name }}</h2>
+                                <span class="inline-block bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded font-mono mt-1">ID: {{ item.apply_id or '无' }}</span>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded shrink-0 ml-2">{{ item.team }}</span>
+                        </div>
+
+                        <div class="text-sm text-slate-600 space-y-1 mb-3">
+                            <p><span class="font-medium">申请类型：</span>{{ item.app_type }}</p>
+                            <p><span class="font-medium">PoC 阶段：</span>{{ item.poc_stage }}</p>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-xs font-medium text-slate-700">测试模型范围：</span>
+                                <span class="text-xs text-slate-400">共 {{ item.models_list|length }} 个</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 bg-white rounded border border-slate-200 shadow-inner">
+                                {% for m in item.models_list %}
+                                <span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 text-[11px] px-2 py-0.5 rounded font-mono break-all leading-tight">
+                                    {{ m }}
+                                </span>
+                                {% else %}
+                                <span class="text-xs text-slate-400">未选择模型</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 开通信息填写表单 -->
+                    <div class="p-4 flex-1 space-y-3 bg-white">
+                        <h3 class="text-sm font-bold text-emerald-700 flex items-center mb-2">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            填写开通信息
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">POC 状态</label>
+                                <select name="statuses" class="w-full border-slate-300 rounded shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm p-2 bg-slate-50">
+                                    {% for st in poc_statuses %}
+                                    <option value="{{ st }}" {% if item.status == st %}selected{% endif %}>
+                                        {% if st == '待开通' %}⏳ {% elif st == '已开通' %}✅ {% elif st == '测试中' %}🧪 {% elif st == '已完成' %}🎉 {% elif st == '已转正式' %}🚀 {% elif st == '已关闭' %}🔒 {% endif %}{{ st }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 mb-1">开通日期</label>
+                                <input type="date" name="open_dates" value="{{ item.open_date }}" class="w-full border-slate-300 rounded shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm p-2">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-500 mb-1">测试额度（RMB）</label>
+                            <input type="text" name="quotas" value="{{ item.quota }}" placeholder="例如：1000" class="w-full border-slate-300 rounded shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm p-2">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-500 mb-1">客户ID资料 (网址/API/账号/密码)</label>
+                            <textarea name="client_id_infos" rows="2" placeholder="请输入相关资料..." class="w-full border-slate-300 rounded shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm p-2 resize-none">{{ item.client_id_info }}</textarea>
+                        </div>
+
+                        {% if item.update_date %}
+                        <p class="text-xs text-slate-400 text-right mt-1">最后更新: {{ item.update_date }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-span-full py-12 text-center text-slate-500 bg-white rounded-lg border">
+                    暂无任何申请记录。
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 分页与保存 -->
+            <div class="mt-8 flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                    {% if current_page > 1 %}
+                    <a href="/activate?page={{ current_page - 1 }}" class="px-3 py-1 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 text-sm font-medium">上一页</a>
+                    {% else %}
+                    <span class="px-3 py-1 bg-slate-50 text-slate-400 rounded text-sm font-medium cursor-not-allowed">上一页</span>
+                    {% endif %}
+
+                    <span class="text-sm text-slate-600">第 <strong>{{ current_page }}</strong> 页 / 共 {{ total_pages }} 页</span>
+
+                    {% if current_page < total_pages %}
+                    <a href="/activate?page={{ current_page + 1 }}" class="px-3 py-1 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 text-sm font-medium">下一页</a>
+                    {% else %}
+                    <span class="px-3 py-1 bg-slate-50 text-slate-400 rounded text-sm font-medium cursor-not-allowed">下一页</span>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="w-full sm:w-auto px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-md transition transform active:scale-95">
+                    💾 保存当前页修改
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: smarttitu-web
+    env: docker
+    plan: free
+    disk:
+      name: titu-excel-storage
+      mountPath: /var/data     # 挂载到容器的 /var/data 路径
+      sizeGB: 1
