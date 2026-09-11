@@ -17,4 +17,4 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push --force https://Kimin1999:$HF_TOKEN@huggingface.co/spaces/Kimin1999/smartTiTu-uic master
+          git push --force https://Kimin1999:$HF_TOKEN@huggingface.co/spaces/Kimin1999/smartTiTu-uic main
