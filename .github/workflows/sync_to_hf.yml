@@ -2,7 +2,7 @@ name: Sync to Hugging Face Hub
 
 on:
   push:
-    branches: [main] # 当main分支有更新时触发
+    branches: [master] # 当master分支有更新时触发
 
 jobs:
   sync-to-hub:
